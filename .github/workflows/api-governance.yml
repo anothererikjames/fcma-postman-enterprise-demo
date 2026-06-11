@@ -28,7 +28,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Lints the proposed spec so the failing governance check is visible
-      # on the feature/global-customer-id demo branch.
+      # Lints the branch's active spec (openapi.yaml). Each demo branch swaps
+      # this file, so the Action fails on feature/global-customer-id and
+      # passes on main and fix/fcma-api-standards — the branch demo story.
       - name: Run FCMA API standards check
-        run: npm run lint:customer:proposed
+        run: npm run lint:customer
