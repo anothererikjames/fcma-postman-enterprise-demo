@@ -1,0 +1,34 @@
+# API Governance — pre-merge FCMA API standards check.
+# This is not a replacement for FCMA's CI/CD; it is a deterministic standards
+# step that runs inside the orchestrator you already use.
+name: API Governance
+
+on:
+  pull_request:
+    paths:
+      - 'apis/**/*.yaml'
+      - 'governance/**/*.yaml'
+      - '.github/workflows/api-governance.yml'
+  workflow_dispatch:
+
+jobs:
+  lint-openapi:
+    name: Run FCMA API standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Lints the proposed spec so the failing governance check is visible
+      # on the feature/global-customer-id demo branch.
+      - name: Run FCMA API standards check
+        run: npm run lint:customer:proposed

@@ -1,0 +1,476 @@
+# Partner Online Banking API — sanitized third-party integration surface.
+# Supports the mock-server video: deterministic local development against a
+# partner contract before the partner sandbox is available.
+# All data, hosts, and identifiers are fake demo values. No real partner data.
+openapi: 3.0.3
+info:
+  title: Partner Online Banking API
+  version: 1.0.0
+  description: >-
+    Sanitized representation of a third-party online banking partner API.
+    Used to demonstrate Postman mock servers for inner-loop development of
+    third-party integrations: deterministic happy-path and edge-case
+    responses without depending on partner sandbox availability. All
+    identifiers and data are fake demo values.
+  contact:
+    name: Demo Partner Integrations (placeholder)
+    email: integrations@partner-sandbox.example.com
+servers:
+  - url: https://partner-sandbox.example.com/v1
+    description: Demo placeholder partner sandbox (not a live endpoint)
+tags:
+  - name: Auth
+    description: Partner OAuth token issuance
+  - name: Accounts
+    description: Account balance lookups
+  - name: Loans
+    description: Loan summary and payment quoting
+  - name: Customers
+    description: Customer eligibility checks
+paths:
+  /oauth/token:
+    post:
+      summary: Get OAuth token
+      description: >-
+        Exchanges partner client credentials for a short-lived access token.
+        Demo flow only; no real credentials are accepted.
+      operationId: getOauthToken
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - grant_type
+                - client_id
+                - client_secret
+              properties:
+                grant_type:
+                  type: string
+                  description: OAuth2 grant type.
+                  example: client_credentials
+                client_id:
+                  type: string
+                  description: Partner-issued client identifier.
+                  example: demo-client-id
+                client_secret:
+                  type: string
+                  description: Partner-issued client secret.
+                  example: demo-client-secret
+      responses:
+        '200':
+          description: Access token issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+              examples:
+                tokenIssued:
+                  summary: Demo token
+                  value:
+                    accessToken: demo-access-token
+                    tokenType: Bearer
+                    expiresIn: 3600
+        '401':
+          description: Invalid client credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+              examples:
+                invalidToken:
+                  summary: Invalid credentials
+                  value:
+                    errorCode: INVALID_TOKEN
+                    message: The access token is expired or invalid.
+                    correlationId: demo-corr-401
+  /accounts/{accountId}/balances:
+    get:
+      summary: Get account balances
+      description: >-
+        Returns current and available balances for the supplied account.
+        Demo data only.
+      operationId: getAccountBalances
+      tags:
+        - Accounts
+      security:
+        - partnerBearer: []
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Partner account identifier (demo format acct_demo_NNNN).
+          schema:
+            type: string
+            example: acct_demo_1001
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Account balance snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalances'
+              examples:
+                demoBalances:
+                  summary: Demo account balances
+                  value:
+                    accountId: acct_demo_1001
+                    currentBalance: 5230.5
+                    availableBalance: 5180.5
+                    currency: USD
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+        '503':
+          description: Partner service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+  /loans/{loanId}/summary:
+    get:
+      summary: Get loan summary
+      description: >-
+        Returns the loan summary used by the integration's happy path.
+        Demo data only.
+      operationId: getLoanSummary
+      tags:
+        - Loans
+      security:
+        - partnerBearer: []
+      parameters:
+        - name: loanId
+          in: path
+          required: true
+          description: Partner loan identifier (demo format loan_NNNNN).
+          schema:
+            type: string
+            example: loan_12345
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Loan summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanSummary'
+              examples:
+                demoLoanSummary:
+                  summary: Demo loan summary
+                  value:
+                    loanId: loan_12345
+                    status: ACTIVE
+                    principalBalance: 125000.0
+                    nextPaymentDueDate: '2026-07-01'
+                    currency: USD
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+        '503':
+          description: Partner service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+              examples:
+                partnerUnavailable:
+                  summary: Partner outage
+                  value:
+                    errorCode: PARTNER_UNAVAILABLE
+                    message: Partner service is temporarily unavailable.
+                    retryAfterSeconds: 30
+                    correlationId: demo-corr-503
+  /loan-payments/quote:
+    post:
+      summary: Create loan payment quote
+      description: >-
+        Generates a payoff or payment quote for a loan. Demonstrates a
+        business-rule failure (422) that is hard to force against a real
+        partner sandbox but trivial to stage in a mock server.
+      operationId: createLoanPaymentQuote
+      tags:
+        - Loans
+      security:
+        - partnerBearer: []
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentQuoteRequest'
+            examples:
+              demoQuoteRequest:
+                summary: Demo quote request
+                value:
+                  loanId: loan_12345
+                  quoteType: PAYOFF
+                  effectiveDate: '2026-07-01'
+      responses:
+        '200':
+          description: Payment quote generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentQuote'
+              examples:
+                demoQuote:
+                  summary: Demo payment quote
+                  value:
+                    quoteId: quote_demo_4001
+                    loanId: loan_12345
+                    quoteType: PAYOFF
+                    amount: 125450.25
+                    currency: USD
+                    expiresAt: '2026-07-01T00:00:00Z'
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+        '422':
+          description: Quote cannot be generated for this loan status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+              examples:
+                quoteNotAvailable:
+                  summary: Business-rule failure
+                  value:
+                    errorCode: PAYMENT_QUOTE_NOT_AVAILABLE
+                    message: A payment quote cannot be generated for this loan status.
+                    correlationId: demo-corr-422
+        '503':
+          description: Partner service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+  /customers/{customerId}/eligibility:
+    get:
+      summary: Get customer eligibility
+      description: >-
+        Returns the partner's eligibility determination for a customer.
+        Demo data only.
+      operationId: getCustomerEligibility
+      tags:
+        - Customers
+      security:
+        - partnerBearer: []
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: Partner customer identifier (demo format cust_demo_NNNN).
+          schema:
+            type: string
+            example: cust_demo_1001
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Eligibility determination.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityResponse'
+              examples:
+                demoEligibility:
+                  summary: Demo eligibility
+                  value:
+                    customerId: cust_demo_1001
+                    eligible: true
+                    products:
+                      - ONLINE_BANKING
+                      - LOAN_PAYMENTS
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+        '422':
+          description: Eligibility cannot be determined for this customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+        '503':
+          description: Partner service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerError'
+components:
+  securitySchemes:
+    partnerBearer:
+      type: http
+      scheme: bearer
+      description: Bearer token issued by POST /oauth/token (demo only).
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: Correlation identifier for request tracing.
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    TokenResponse:
+      type: object
+      description: OAuth token response (demo only).
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+          description: Short-lived access token.
+          example: demo-access-token
+        tokenType:
+          type: string
+          description: Token type.
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Token lifetime in seconds.
+          example: 3600
+    AccountBalances:
+      type: object
+      description: Account balance snapshot (demo data only).
+      properties:
+        accountId:
+          type: string
+          example: acct_demo_1001
+        currentBalance:
+          type: number
+          format: double
+          example: 5230.5
+        availableBalance:
+          type: number
+          format: double
+          example: 5180.5
+        currency:
+          type: string
+          example: USD
+    LoanSummary:
+      type: object
+      description: Loan summary (demo data only).
+      properties:
+        loanId:
+          type: string
+          example: loan_12345
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - PAID_OFF
+            - DELINQUENT
+          example: ACTIVE
+        principalBalance:
+          type: number
+          format: double
+          example: 125000.0
+        nextPaymentDueDate:
+          type: string
+          format: date
+          example: '2026-07-01'
+        currency:
+          type: string
+          example: USD
+    PaymentQuoteRequest:
+      type: object
+      description: Payment quote request.
+      required:
+        - loanId
+        - quoteType
+      properties:
+        loanId:
+          type: string
+          example: loan_12345
+        quoteType:
+          type: string
+          enum:
+            - PAYOFF
+            - NEXT_PAYMENT
+          example: PAYOFF
+        effectiveDate:
+          type: string
+          format: date
+          example: '2026-07-01'
+    PaymentQuote:
+      type: object
+      description: Generated payment quote (demo data only).
+      properties:
+        quoteId:
+          type: string
+          example: quote_demo_4001
+        loanId:
+          type: string
+          example: loan_12345
+        quoteType:
+          type: string
+          example: PAYOFF
+        amount:
+          type: number
+          format: double
+          example: 125450.25
+        currency:
+          type: string
+          example: USD
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2026-07-01T00:00:00Z'
+    EligibilityResponse:
+      type: object
+      description: Eligibility determination (demo data only).
+      properties:
+        customerId:
+          type: string
+          example: cust_demo_1001
+        eligible:
+          type: boolean
+          example: true
+        products:
+          type: array
+          items:
+            type: string
+          example:
+            - ONLINE_BANKING
+            - LOAN_PAYMENTS
+    PartnerError:
+      type: object
+      description: Partner error envelope (demo only).
+      required:
+        - errorCode
+        - message
+        - correlationId
+      properties:
+        errorCode:
+          type: string
+          example: PARTNER_UNAVAILABLE
+        message:
+          type: string
+          example: Partner service is temporarily unavailable.
+        correlationId:
+          type: string
+          example: demo-corr-503
+        retryAfterSeconds:
+          type: integer
+          description: Suggested retry delay (present on 503 responses).
+          example: 30

@@ -1,0 +1,21 @@
+FCMA API Standards Check
+API: Customer Truth Center API
+Branch: feature/global-customer-id
+FAILED
+Rule: secured-endpoints-require-401-403
+File: apis/customer-truth-center/openapi-proposed-global-customer-id.yaml
+Path: GET /customers/{globalCustomerId}
+Issue: Missing 403 response
+Rule: standard-error-schema-required
+File: apis/customer-truth-center/openapi-proposed-global-customer-id.yaml
+Path: POST /customers/search
+Issue: Error response does not reference StandardError
+Rule: correlation-id-required
+File: apis/customer-truth-center/openapi-proposed-global-customer-id.yaml
+Path: GET /customers/{globalCustomerId}/loans
+Issue: Missing X-Correlation-Id header
+Rule: operation-description-required
+File: apis/customer-truth-center/openapi-proposed-global-customer-id.yaml
+Path: GET /customers/{globalCustomerId}/relationships
+Issue: Operation has summary but no description
+Result: 4 violations found. Build blocked before promotion.

@@ -1,0 +1,570 @@
+# Working spec for this branch. On main this is the compliant (neutral) base.
+# Branch feature/global-customer-id replaces this file with the intentionally
+# failing proposed spec; branch fix/fcma-api-standards restores compliance.
+openapi: 3.0.3
+info:
+  title: Customer Truth Center API
+  version: 1.0.0
+  description: >-
+    Sanitized, demo-only representation of a customer "source of truth" API.
+    Used to demonstrate governed API contracts in Postman Enterprise:
+    organizational standards (OAuth2, correlation IDs, standard errors,
+    pagination, examples) applied consistently at design time and enforced
+    as a pre-merge governance check. All identifiers are fake demo values.
+  contact:
+    name: FCMA Demo Platform Team (placeholder)
+    email: platform-team@fcma-demo.local
+servers:
+  - url: https://api.fcma-demo.local/customer-truth-center/v1
+    description: Demo placeholder server (not a live FCMA endpoint)
+tags:
+  - name: Customers
+    description: Customer identity and profile operations
+  - name: Loans
+    description: Customer loan portfolio operations
+  - name: Relationships
+    description: Customer relationship graph operations
+security:
+  - oauth2: []
+paths:
+  /customers/{customerId}:
+    get:
+      summary: Get a customer by ID
+      description: >-
+        Returns the canonical customer record for the supplied customer ID.
+        This is the authoritative customer profile used by downstream
+        consumers. Requires the customer.read scope.
+      operationId: getCustomerById
+      tags:
+        - Customers
+      security:
+        - oauth2:
+            - customer.read
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Canonical customer record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                demoCustomer:
+                  summary: Demo business customer
+                  value:
+                    customerId: cust_demo_1001
+                    globalCustomerId: 01J0FCMADEMO8A7Z4Y6X3W2V1T
+                    displayName: Demo Customer
+                    customerType: BUSINESS
+                    status: ACTIVE
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Caller is not authorized for this customer record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: No customer exists for the supplied ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+  /customers/{customerId}/loans:
+    get:
+      summary: List loans for a customer
+      description: >-
+        Returns a paginated list of loans associated with the supplied
+        customer ID. Results are ordered by next payment due date and use
+        the standard pagination envelope.
+      operationId: listCustomerLoans
+      tags:
+        - Loans
+      security:
+        - oauth2:
+            - customer.read
+            - loans.read
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of loans for the customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoansResponse'
+              examples:
+                demoLoans:
+                  summary: Demo loan portfolio
+                  value:
+                    items:
+                      - loanId: loan_demo_2001
+                        status: ACTIVE
+                        principalBalance: 125000.0
+                        currency: USD
+                        nextPaymentDueDate: '2026-07-01'
+                    pagination:
+                      page: 1
+                      pageSize: 25
+                      totalCount: 1
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Caller is not authorized to read loans for this customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: No customer exists for the supplied ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+  /customers/{customerId}/relationships:
+    get:
+      summary: List relationships for a customer
+      description: >-
+        Returns a paginated list of relationships (for example guarantor,
+        co-borrower, or entity ownership links) for the supplied customer
+        ID, using the standard pagination envelope.
+      operationId: listCustomerRelationships
+      tags:
+        - Relationships
+      security:
+        - oauth2:
+            - customer.read
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of relationships for the customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRelationshipsResponse'
+              examples:
+                demoRelationships:
+                  summary: Demo relationship list
+                  value:
+                    items:
+                      - relationshipId: rel_demo_3001
+                        relationshipType: CO_BORROWER
+                        relatedCustomerId: cust_demo_1002
+                        status: ACTIVE
+                    pagination:
+                      page: 1
+                      pageSize: 25
+                      totalCount: 1
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Caller is not authorized for this customer's relationships.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: No customer exists for the supplied ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+  /customers/search:
+    post:
+      summary: Search customers
+      description: >-
+        Searches the canonical customer store by display name, status, or
+        customer type. Returns a paginated result set using the standard
+        pagination envelope. Requires the customer.read scope.
+      operationId: searchCustomers
+      tags:
+        - Customers
+      security:
+        - oauth2:
+            - customer.read
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSearchRequest'
+            examples:
+              demoSearch:
+                summary: Search by display name
+                value:
+                  query: Demo Customer
+                  customerType: BUSINESS
+                  status: ACTIVE
+                  page: 1
+                  pageSize: 25
+      responses:
+        '200':
+          description: Paginated customer search results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSearchResponse'
+              examples:
+                demoSearchResults:
+                  summary: Demo search results
+                  value:
+                    items:
+                      - customerId: cust_demo_1001
+                        globalCustomerId: 01J0FCMADEMO8A7Z4Y6X3W2V1T
+                        displayName: Demo Customer
+                        customerType: BUSINESS
+                        status: ACTIVE
+                    pagination:
+                      page: 1
+                      pageSize: 25
+                      totalCount: 1
+        '400':
+          description: Invalid search request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Caller is not authorized to search customers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: OAuth2 client credentials flow (demo placeholder issuer).
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.fcma-demo.local/oauth/token
+          scopes:
+            customer.read: Read canonical customer records
+            loans.read: Read customer loan portfolios
+  parameters:
+    CustomerIdPath:
+      name: customerId
+      in: path
+      required: true
+      description: Canonical customer identifier (demo format cust_demo_NNNN).
+      schema:
+        type: string
+        example: cust_demo_1001
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      description: >-
+        Correlation identifier propagated across services for traceability.
+        Required by FCMA API standards on every operation.
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      required: false
+      description: One-based page number.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of items per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+  schemas:
+    Customer:
+      type: object
+      description: Canonical customer record (demo data only).
+      required:
+        - customerId
+        - globalCustomerId
+        - displayName
+        - customerType
+        - status
+      properties:
+        customerId:
+          type: string
+          description: Canonical customer identifier.
+          example: cust_demo_1001
+        globalCustomerId:
+          type: string
+          description: Global cross-system customer identifier (ULID format).
+          example: 01J0FCMADEMO8A7Z4Y6X3W2V1T
+        displayName:
+          type: string
+          description: Customer display name.
+          example: Demo Customer
+        customerType:
+          type: string
+          description: Customer classification.
+          enum:
+            - INDIVIDUAL
+            - BUSINESS
+          example: BUSINESS
+        status:
+          type: string
+          description: Lifecycle status of the customer record.
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - PROSPECT
+          example: ACTIVE
+    Loan:
+      type: object
+      description: Loan summary record (demo data only).
+      required:
+        - loanId
+        - status
+        - principalBalance
+        - currency
+      properties:
+        loanId:
+          type: string
+          description: Loan identifier.
+          example: loan_demo_2001
+        status:
+          type: string
+          description: Loan lifecycle status.
+          enum:
+            - ACTIVE
+            - PAID_OFF
+            - DELINQUENT
+          example: ACTIVE
+        principalBalance:
+          type: number
+          format: double
+          description: Outstanding principal balance.
+          example: 125000.0
+        currency:
+          type: string
+          description: ISO 4217 currency code.
+          example: USD
+        nextPaymentDueDate:
+          type: string
+          format: date
+          description: Next scheduled payment due date.
+          example: '2026-07-01'
+    Relationship:
+      type: object
+      description: Relationship between two customer records (demo data only).
+      required:
+        - relationshipId
+        - relationshipType
+        - relatedCustomerId
+        - status
+      properties:
+        relationshipId:
+          type: string
+          description: Relationship identifier.
+          example: rel_demo_3001
+        relationshipType:
+          type: string
+          description: Type of relationship between the two customers.
+          enum:
+            - CO_BORROWER
+            - GUARANTOR
+            - ENTITY_OWNER
+          example: CO_BORROWER
+        relatedCustomerId:
+          type: string
+          description: Canonical identifier of the related customer.
+          example: cust_demo_1002
+        status:
+          type: string
+          description: Lifecycle status of the relationship.
+          enum:
+            - ACTIVE
+            - INACTIVE
+          example: ACTIVE
+    CustomerSearchRequest:
+      type: object
+      description: Customer search criteria.
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Free-text search across display names.
+          example: Demo Customer
+        customerType:
+          type: string
+          description: Optional customer type filter.
+          enum:
+            - INDIVIDUAL
+            - BUSINESS
+          example: BUSINESS
+        status:
+          type: string
+          description: Optional lifecycle status filter.
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - PROSPECT
+          example: ACTIVE
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+          description: One-based page number.
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+          description: Number of items per page.
+    CustomerSearchResponse:
+      type: object
+      description: Paginated customer search results.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Matching customer records.
+          items:
+            $ref: '#/components/schemas/Customer'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    PaginatedLoansResponse:
+      type: object
+      description: Paginated loan list envelope.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Loans for the requested customer.
+          items:
+            $ref: '#/components/schemas/Loan'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    PaginatedRelationshipsResponse:
+      type: object
+      description: Paginated relationship list envelope.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Relationships for the requested customer.
+          items:
+            $ref: '#/components/schemas/Relationship'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Pagination:
+      type: object
+      description: Standard FCMA pagination envelope.
+      required:
+        - page
+        - pageSize
+        - totalCount
+      properties:
+        page:
+          type: integer
+          description: One-based page number.
+          example: 1
+        pageSize:
+          type: integer
+          description: Number of items per page.
+          example: 25
+        totalCount:
+          type: integer
+          description: Total number of matching items.
+          example: 1
+    StandardError:
+      type: object
+      description: Standard FCMA error envelope used by all 4xx/5xx responses.
+      required:
+        - errorCode
+        - message
+        - correlationId
+      properties:
+        errorCode:
+          type: string
+          description: Stable, machine-readable error code.
+          example: CUSTOMER_NOT_FOUND
+        message:
+          type: string
+          description: Human-readable error description.
+          example: No customer exists for the supplied identifier.
+        correlationId:
+          type: string
+          description: Correlation identifier echoed from the request.
+          example: demo-corr-404
+        details:
+          type: array
+          description: Optional structured detail entries.
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field the detail entry applies to.
+              issue:
+                type: string
+                description: Description of the problem with the field.

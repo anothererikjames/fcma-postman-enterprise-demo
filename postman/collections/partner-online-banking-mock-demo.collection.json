@@ -1,0 +1,576 @@
+{
+  "info": {
+    "_postman_id": "d3a1c0de-2002-4f2a-9b3c-fcmademo0002",
+    "name": "Partner Online Banking API - Mock Demo",
+    "description": "Demonstrates Postman mock servers for third-party integration development (demo). Saved examples cover the happy path plus edge cases that are hard to force against a real partner sandbox: 503 partner outage, 401 auth failure, malformed 200 payload, and a 422 business-rule failure. Create a mock server from this collection, then point the local-dev-partner-mock environment's baseUrl at the generated mock URL. Mock servers do not replace real partner integration testing, Playwright, Checkly, or FCMA's CI/CD — they accelerate the inner loop. All data is fake demo-only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get OAuth Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code >= 400) {",
+              "    pm.test(\"Error response includes correlationId\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.correlationId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "key": "client_id",
+              "value": "{{partnerClientId}}"
+            },
+            {
+              "key": "client_secret",
+              "value": "{{partnerClientSecret}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/oauth/token",
+          "host": ["{{baseUrl}}"],
+          "path": ["oauth", "token"]
+        },
+        "description": "Exchanges demo client credentials for a demo access token."
+      },
+      "response": [
+        {
+          "name": "auth-token-200",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                },
+                {
+                  "key": "client_id",
+                  "value": "demo-client-id"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "demo-client-secret"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth", "token"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"accessToken\":\"demo-access-token\",\"tokenType\":\"Bearer\",\"expiresIn\":3600}"
+        },
+        {
+          "name": "auth-failure-401",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "401"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                },
+                {
+                  "key": "client_id",
+                  "value": "demo-client-id"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "bad-secret"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth", "token"]
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"errorCode\":\"INVALID_TOKEN\",\"message\":\"The access token is expired or invalid.\",\"correlationId\":\"demo-corr-401\"}"
+        }
+      ]
+    },
+    {
+      "name": "Get Account Balance",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code >= 400) {",
+              "    pm.test(\"Error response includes correlationId\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.correlationId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/accounts/{{accountId}}/balances",
+          "host": ["{{baseUrl}}"],
+          "path": ["accounts", "{{accountId}}", "balances"]
+        },
+        "description": "Fetches current and available balances for a demo account."
+      },
+      "response": [
+        {
+          "name": "account-balances-200",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/acct_demo_1001/balances",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "acct_demo_1001", "balances"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"accountId\":\"acct_demo_1001\",\"currentBalance\":5230.5,\"availableBalance\":5180.5,\"currency\":\"USD\"}"
+        }
+      ]
+    },
+    {
+      "name": "Get Loan Summary",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code >= 400) {",
+              "    pm.test(\"Error response includes correlationId\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.correlationId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/loans/{{loanId}}/summary",
+          "host": ["{{baseUrl}}"],
+          "path": ["loans", "{{loanId}}", "summary"]
+        },
+        "description": "Happy-path loan summary lookup used by the integration's main flow."
+      },
+      "response": [
+        {
+          "name": "loan-summary-200",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loans/loan_12345/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["loans", "loan_12345", "summary"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"loanId\":\"loan_12345\",\"status\":\"ACTIVE\",\"principalBalance\":125000.0,\"nextPaymentDueDate\":\"2026-07-01\",\"currency\":\"USD\"}"
+        },
+        {
+          "name": "partner-unavailable-503",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "503"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loans/loan_12345/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["loans", "loan_12345", "summary"]
+            }
+          },
+          "status": "Service Unavailable",
+          "code": 503,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"errorCode\":\"PARTNER_UNAVAILABLE\",\"message\":\"Partner service is temporarily unavailable.\",\"retryAfterSeconds\":30,\"correlationId\":\"demo-corr-503\"}"
+        },
+        {
+          "name": "malformed-loan-summary-200",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              },
+              {
+                "key": "x-mock-response-name",
+                "value": "malformed-loan-summary-200"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loans/loan_12345/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["loans", "loan_12345", "summary"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"loan_id\":\"loan_12345\",\"balance\":\"one hundred twenty five thousand\",\"next_due\":null}"
+        }
+      ]
+    },
+    {
+      "name": "Create Loan Payment Quote",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code >= 400) {",
+              "    pm.test(\"Error response includes correlationId\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.correlationId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"loanId\": \"{{loanId}}\",\n  \"quoteType\": \"PAYOFF\",\n  \"effectiveDate\": \"2026-07-01\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/loan-payments/quote",
+          "host": ["{{baseUrl}}"],
+          "path": ["loan-payments", "quote"]
+        },
+        "description": "Requests a payment quote. Includes a 422 business-rule failure example that is hard to force against a real partner sandbox."
+      },
+      "response": [
+        {
+          "name": "payment-quote-200",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"loan_12345\",\n  \"quoteType\": \"PAYOFF\",\n  \"effectiveDate\": \"2026-07-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loan-payments/quote",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan-payments", "quote"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"quoteId\":\"quote_demo_4001\",\"loanId\":\"loan_12345\",\"quoteType\":\"PAYOFF\",\"amount\":125450.25,\"currency\":\"USD\",\"expiresAt\":\"2026-07-01T00:00:00Z\"}"
+        },
+        {
+          "name": "payment-quote-business-failure-422",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "422"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"loan_12345\",\n  \"quoteType\": \"PAYOFF\",\n  \"effectiveDate\": \"2026-07-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loan-payments/quote",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan-payments", "quote"]
+            }
+          },
+          "status": "Unprocessable Entity",
+          "code": 422,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"errorCode\":\"PAYMENT_QUOTE_NOT_AVAILABLE\",\"message\":\"A payment quote cannot be generated for this loan status.\",\"correlationId\":\"demo-corr-422\"}"
+        }
+      ]
+    },
+    {
+      "name": "Get Customer Eligibility",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code >= 400) {",
+              "    pm.test(\"Error response includes correlationId\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.correlationId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/customers/{{customerId}}/eligibility",
+          "host": ["{{baseUrl}}"],
+          "path": ["customers", "{{customerId}}", "eligibility"]
+        },
+        "description": "Checks partner eligibility for a demo customer."
+      },
+      "response": [
+        {
+          "name": "eligibility-200",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer demo-access-token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/cust_demo_1001/eligibility",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "cust_demo_1001", "eligibility"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\"customerId\":\"cust_demo_1001\",\"eligible\":true,\"products\":[\"ONLINE_BANKING\",\"LOAN_PAYMENTS\"]}"
+        }
+      ]
+    }
+  ]
+}

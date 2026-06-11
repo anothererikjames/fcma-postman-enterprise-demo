@@ -1,0 +1,5 @@
+{
+  "accessToken": "demo-access-token",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}

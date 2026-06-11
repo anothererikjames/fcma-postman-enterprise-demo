@@ -1,0 +1,19 @@
+{
+  "name": "fcma-postman-enterprise-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FCMA Postman Enterprise demo assets: governed API contracts (SpecHub + standards checks) and mock servers for third-party integration development. All data is fake/demo-only.",
+  "scripts": {
+    "lint:customer": "spectral lint apis/customer-truth-center/openapi.yaml -r governance/fcma-api-standards.spectral.yaml",
+    "lint:customer:compliant": "spectral lint apis/customer-truth-center/openapi-compliant.yaml -r governance/fcma-api-standards.spectral.yaml",
+    "lint:customer:proposed": "spectral lint apis/customer-truth-center/openapi-proposed-global-customer-id.yaml -r governance/fcma-api-standards.spectral.yaml",
+    "mock:smoke": "newman run postman/collections/partner-online-banking-mock-demo.collection.json -e postman/environments/local-dev-partner-mock.environment.json",
+    "contract:smoke": "newman run postman/collections/customer-truth-center-contract.collection.json -e postman/environments/fcma-contract-dev.environment.json",
+    "demo:fail": "npm run lint:customer:proposed",
+    "demo:pass": "npm run lint:customer:compliant"
+  },
+  "devDependencies": {
+    "@stoplight/spectral-cli": "^6.15.0",
+    "newman": "^6.2.1"
+  }
+}

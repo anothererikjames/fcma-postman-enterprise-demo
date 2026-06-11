@@ -1,0 +1,32 @@
+# Mock Demo Smoke — runs the partner mock collection via newman.
+# Replace https://mock-server-url.example.com in the local-dev environment
+# with a real Postman mock server URL for this to execute meaningfully.
+name: Mock Demo Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'postman/collections/partner-online-banking-mock-demo.collection.json'
+      - 'postman/environments/local-dev-partner-mock.environment.json'
+      - '.github/workflows/mock-demo-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  mock-smoke:
+    name: Run mock demo smoke check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run mock demo smoke check
+        run: npm run mock:smoke

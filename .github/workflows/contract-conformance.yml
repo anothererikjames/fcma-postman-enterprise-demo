@@ -1,0 +1,32 @@
+# Contract Conformance — runs the contract collection via newman.
+# Illustrative: the demo baseUrl (api.fcma-demo.local) is not a live service.
+# Attach a mock or local server to execute meaningfully (see README).
+name: Contract Conformance
+
+on:
+  pull_request:
+    paths:
+      - 'postman/collections/customer-truth-center-contract.collection.json'
+      - 'postman/environments/fcma-contract-dev.environment.json'
+      - '.github/workflows/contract-conformance.yml'
+  workflow_dispatch:
+
+jobs:
+  contract-smoke:
+    name: Run contract smoke check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run contract smoke check
+        run: npm run contract:smoke

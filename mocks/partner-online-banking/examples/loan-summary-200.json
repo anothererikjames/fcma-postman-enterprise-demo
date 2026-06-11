@@ -1,0 +1,7 @@
+{
+  "loanId": "loan_12345",
+  "status": "ACTIVE",
+  "principalBalance": 125000.0,
+  "nextPaymentDueDate": "2026-07-01",
+  "currency": "USD"
+}

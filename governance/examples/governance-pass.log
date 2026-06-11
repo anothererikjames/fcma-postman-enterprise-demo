@@ -1,0 +1,13 @@
+FCMA API Standards Check
+API: Customer Truth Center API
+Branch: main
+PASSED
+Rules evaluated:
+- operation-description-required
+- correlation-id-required
+- secured-endpoints-require-401-403
+- standard-error-schema-required
+- path-parameter-casing
+- response-examples-required
+- pagination-required-on-list-endpoints
+Result: 0 violations found. Build may continue.

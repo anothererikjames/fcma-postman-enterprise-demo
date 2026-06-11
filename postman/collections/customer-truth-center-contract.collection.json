@@ -1,0 +1,239 @@
+{
+  "info": {
+    "_postman_id": "d3a1c0de-1001-4f2a-9b3c-fcmademo0001",
+    "name": "Customer Truth Center API - Contract Collection",
+    "description": "Contract-level smoke checks for the Customer Truth Center API (demo). Verifies each operation responds with an expected status and a valid JSON body shaped per the governed contract. All endpoints and data are fake demo values; point baseUrl at a live or mocked service to execute for real. This collection complements — and does not replace — Playwright, Checkly, or FCMA's CI/CD.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Customer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is successful or expected error\", function () {",
+              "    pm.expect([200, 400, 401, 403, 404, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test(\"Customer response contains customerId or globalCustomerId\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.customerId || json.globalCustomerId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/customers/{{customerId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["customers", "{{customerId}}"]
+        },
+        "description": "Fetches the canonical customer record. Contract expectation: 200 with customerId/globalCustomerId, or a StandardError envelope on 4xx/5xx."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Customer Loans",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is successful or expected error\", function () {",
+              "    pm.expect([200, 400, 401, 403, 404, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test(\"Loans response includes pagination envelope\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.pagination).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/customers/{{customerId}}/loans?page=1&pageSize=25",
+          "host": ["{{baseUrl}}"],
+          "path": ["customers", "{{customerId}}", "loans"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "25"
+            }
+          ]
+        },
+        "description": "Lists loans for the customer. Contract expectation: paginated envelope with items[] and pagination {page, pageSize, totalCount}."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Customer Relationships",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is successful or expected error\", function () {",
+              "    pm.expect([200, 400, 401, 403, 404, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test(\"Relationships response includes pagination envelope\", function () {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json.pagination).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/customers/{{customerId}}/relationships?page=1&pageSize=25",
+          "host": ["{{baseUrl}}"],
+          "path": ["customers", "{{customerId}}", "relationships"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "25"
+            }
+          ]
+        },
+        "description": "Lists relationships for the customer. Contract expectation: paginated envelope with items[] and pagination {page, pageSize, totalCount}."
+      },
+      "response": []
+    },
+    {
+      "name": "Search Customers",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is successful or expected error\", function () {",
+              "    pm.expect([200, 400, 401, 403, 404, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test(\"Response is valid JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test(\"Customer response contains customerId or globalCustomerId\", function () {",
+              "        var json = pm.response.json();",
+              "        var first = (json.items && json.items[0]) || json;",
+              "        pm.expect(first.customerId || first.globalCustomerId).to.exist;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Demo Customer\",\n  \"customerType\": \"BUSINESS\",\n  \"status\": \"ACTIVE\",\n  \"page\": 1,\n  \"pageSize\": 25\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/customers/search",
+          "host": ["{{baseUrl}}"],
+          "path": ["customers", "search"]
+        },
+        "description": "Searches the canonical customer store. Contract expectation: 200 with paginated results, or a StandardError envelope on 4xx/5xx."
+      },
+      "response": []
+    }
+  ]
+}

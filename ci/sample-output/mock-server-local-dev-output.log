@@ -1,0 +1,10 @@
+Local integration service
+PARTNER_API_BASE_URL=https://mock-server-url.example.com
+Calling GET /loans/loan_12345/summary...
+Response: 200 ACTIVE
+Calling POST /loan-payments/quote...
+Response: 503 PARTNER_UNAVAILABLE
+Retry logic triggered.
+Calling GET /customers/cust_demo_1001/eligibility...
+Response: 422 PAYMENT_QUOTE_NOT_AVAILABLE
+Result: Mock server supports happy path and edge-case testing without partner dependency.

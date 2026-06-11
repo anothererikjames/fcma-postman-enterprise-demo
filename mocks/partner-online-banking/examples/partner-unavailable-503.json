@@ -1,0 +1,6 @@
+{
+  "errorCode": "PARTNER_UNAVAILABLE",
+  "message": "Partner service is temporarily unavailable.",
+  "retryAfterSeconds": 30,
+  "correlationId": "demo-corr-503"
+}

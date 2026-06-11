@@ -1,0 +1,14 @@
+FCMA Contract Conformance Check
+API: Customer Truth Center API
+Environment: dev
+Collection: Customer Truth Center API - Contract Collection
+PASSED WITH WARNINGS
+Requests evaluated:
+- Get Customer
+- Get Customer Loans
+- Get Customer Relationships
+- Search Customers
+Warnings:
+- Demo endpoint is not a live FCMA service.
+- This output is staged for recording purposes.
+Result: Contract smoke check completed.

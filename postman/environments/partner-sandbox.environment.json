@@ -1,0 +1,49 @@
+{
+  "id": "e1a1c0de-3003-4f2a-9b3c-fcmademo0005",
+  "name": "Partner Sandbox (demo)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://partner-sandbox.example.com/v1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "partnerClientId",
+      "value": "demo-client-id",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "partnerClientSecret",
+      "value": "demo-client-secret",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "accessToken",
+      "value": "demo-access-token",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "accountId",
+      "value": "acct_demo_1001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "loanId",
+      "value": "loan_12345",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "customerId",
+      "value": "cust_demo_1001",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

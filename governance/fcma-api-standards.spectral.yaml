@@ -1,0 +1,117 @@
+# FCMA API Standards — Spectral ruleset (demo approximation)
+#
+# This ruleset is a demo-grade approximation of FCMA's internal API standards,
+# expressed as deterministic Spectral rules so the standard moves out of
+# reviewer memory and into a repeatable pre-merge governance check.
+#
+# Rules:
+#   1. operation-description-required        — summary, description, operationId on every operation
+#   2. correlation-id-required               — X-Correlation-Id header param on every operation
+#   3. secured-endpoints-require-401-403     — secured operations define 401 and 403 responses
+#   4. standard-error-schema-required        — 4xx/5xx responses reference StandardError
+#   5. path-parameter-casing                 — path parameters are camelCase
+#      schema-property-casing                — schema property names are camelCase (catches snake_case)
+#   6. response-examples-required            — every 200 response includes examples
+#   7. pagination-required-on-list-endpoints — /loans and /relationships list responses include pagination
+#
+# In Postman Enterprise these standards live as governance rules in SpecHub;
+# this file is the CI-side equivalent run via `npx spectral lint`.
+extends: []
+rules:
+  operation-description-required:
+    description: Every operation must define a summary, a description, and an operationId so consumers understand intent without reading source.
+    message: "FCMA standard: operation must define summary, description, and operationId ({{property}} is missing)."
+    severity: error
+    given: "$.paths[*][?(@property === 'get' || @property === 'post' || @property === 'put' || @property === 'patch' || @property === 'delete')]"
+    then:
+      - field: summary
+        function: truthy
+      - field: description
+        function: truthy
+      - field: operationId
+        function: truthy
+
+  correlation-id-required:
+    description: Every operation must accept the X-Correlation-Id header (directly or via a referenced parameter) for cross-service traceability.
+    message: "FCMA standard: operation is missing the X-Correlation-Id header parameter."
+    severity: error
+    given: "$.paths[*][?(@property === 'get' || @property === 'post' || @property === 'put' || @property === 'patch' || @property === 'delete')]"
+    then:
+      field: parameters
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: object
+            properties:
+              name:
+                const: X-Correlation-Id
+              in:
+                const: header
+            required:
+              - name
+              - in
+
+  secured-endpoints-require-401-403:
+    description: Operations that declare security must define both 401 (unauthenticated) and 403 (unauthorized) responses.
+    message: "FCMA standard: secured operation must define a {{property}} response."
+    severity: error
+    given: "$.paths[*][?(@property === 'get' || @property === 'post' || @property === 'put' || @property === 'patch' || @property === 'delete')].responses"
+    then:
+      - field: '401'
+        function: truthy
+      - field: '403'
+        function: truthy
+
+  standard-error-schema-required:
+    description: All 4xx/5xx JSON responses must reference the shared StandardError schema rather than defining ad-hoc inline error shapes.
+    message: "FCMA standard: error response must reference #/components/schemas/StandardError (found inline or non-standard schema)."
+    severity: error
+    resolved: false
+    given: "$.paths[*][*].responses[?(@property && /^[45][0-9][0-9]$/.test(@property))].content['application/json'].schema"
+    then:
+      - field: $ref
+        function: defined
+      - field: $ref
+        function: pattern
+        functionOptions:
+          match: "StandardError$"
+
+  path-parameter-casing:
+    description: Path parameter names must be camelCase per FCMA naming standards.
+    message: "FCMA standard: path parameter '{{value}}' must be camelCase."
+    severity: error
+    given: "$.paths[*][*].parameters[?(@.in === 'path')].name"
+    then:
+      function: casing
+      functionOptions:
+        type: camel
+
+  schema-property-casing:
+    description: Schema property names must be camelCase per FCMA naming standards (no snake_case fields such as cust_id).
+    message: "FCMA standard: schema property '{{property}}' must be camelCase."
+    severity: error
+    given: "$.components.schemas[*].properties[*]~"
+    then:
+      function: casing
+      functionOptions:
+        type: camel
+
+  response-examples-required:
+    description: Every 200 JSON response must include at least one example so consumers and mock servers have a known-good payload.
+    message: "FCMA standard: 200 response must include examples."
+    severity: error
+    given: "$.paths[*][*].responses['200'].content['application/json']"
+    then:
+      field: examples
+      function: defined
+
+  pagination-required-on-list-endpoints:
+    description: List endpoints (/loans, /relationships) must return the standard pagination envelope (page, pageSize, totalCount).
+    message: "FCMA standard: list endpoint 200 response must include the pagination envelope."
+    severity: error
+    given: "$.paths[?(@property && /\\/(loans|relationships)$/.test(@property))][*].responses['200'].content['application/json'].schema.properties"
+    then:
+      field: pagination
+      function: defined

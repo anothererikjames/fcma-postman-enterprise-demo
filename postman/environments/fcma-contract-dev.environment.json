@@ -1,0 +1,31 @@
+{
+  "id": "e1a1c0de-3001-4f2a-9b3c-fcmademo0003",
+  "name": "FCMA Contract Dev (demo)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.fcma-demo.local/customer-truth-center/v1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "customerId",
+      "value": "cust_demo_1001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "globalCustomerId",
+      "value": "01J0FCMADEMO8A7Z4Y6X3W2V1T",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "accessToken",
+      "value": "demo-access-token",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

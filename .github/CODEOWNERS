@@ -1,0 +1,8 @@
+# CODEOWNERS — demo placeholders only.
+# The @fcma-demo/* teams do not exist; they illustrate how contract ownership
+# would route reviews in a real FCMA repository.
+
+/apis/customer-truth-center/ @fcma-demo/platform-team @fcma-demo/customer-platform
+/governance/ @fcma-demo/platform-team
+/postman/collections/customer-truth-center-contract.collection.json @fcma-demo/platform-team @fcma-demo/qa-engineering
+/postman/collections/partner-online-banking-mock-demo.collection.json @fcma-demo/integration-engineering
