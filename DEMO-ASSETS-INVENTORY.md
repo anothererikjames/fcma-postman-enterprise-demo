@@ -70,6 +70,14 @@ when signed in as `anothererikjames`), and run on `actions/checkout@v5` +
 @postman.com account; switch accounts to see it)
 **URL:** https://erik-james-v12.postman.co/workspace/5cd17cb0-0ac0-4e04-a3b2-15b3c71e1201
 
+### Specs (Spec Hub)
+
+| Spec | ID |
+|---|---|
+| Customer Truth Center API (compliant baseline) | `08fc0d74-53fd-4926-9eb0-d4fc33d5d83b` |
+| Customer Truth Center API (proposed globalCustomerId — the failing proposal) | `b4667a0f-9c5f-46d8-8ee5-17addffed7aa` |
+| Partner Online Banking API | `34f29a34-155e-4431-a5aa-c99be54ea392` |
+
 ### Collections (imported via API)
 
 | Collection | UID |
