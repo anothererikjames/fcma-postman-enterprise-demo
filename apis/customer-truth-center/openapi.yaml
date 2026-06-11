@@ -1,16 +1,14 @@
-# Working spec for this branch. On main this is the compliant (neutral) base.
-# Branch feature/global-customer-id replaces this file with the intentionally
-# failing proposed spec; branch fix/fcma-api-standards restores compliance.
+# Demo default: intentionally includes governance violations.
+# Use openapi-compliant.yaml to show a passing branch.
 openapi: 3.0.3
 info:
   title: Customer Truth Center API
-  version: 1.0.0
+  version: 1.1.0-proposed
   description: >-
-    Sanitized, demo-only representation of a customer "source of truth" API.
-    Used to demonstrate governed API contracts in Postman Enterprise:
-    organizational standards (OAuth2, correlation IDs, standard errors,
-    pagination, examples) applied consistently at design time and enforced
-    as a pre-merge governance check. All identifiers are fake demo values.
+    Proposed revision that renames the customerId path parameter to
+    globalCustomerId across customer lookup endpoints. Sanitized, demo-only
+    representation used to demonstrate a failing FCMA API standards check in
+    a governed contract workflow. All identifiers are fake demo values.
   contact:
     name: FCMA Demo Platform Team (placeholder)
     email: platform-team@fcma-demo.local
@@ -27,21 +25,21 @@ tags:
 security:
   - oauth2: []
 paths:
-  /customers/{customerId}:
+  /customers/{globalCustomerId}:
     get:
-      summary: Get a customer by ID
+      summary: Get a customer by global customer ID
       description: >-
-        Returns the canonical customer record for the supplied customer ID.
-        This is the authoritative customer profile used by downstream
-        consumers. Requires the customer.read scope.
-      operationId: getCustomerById
+        Returns the canonical customer record for the supplied global
+        customer ID. Proposed replacement for the legacy customerId lookup.
+        Requires the customer.read scope.
+      operationId: getCustomerByGlobalId
       tags:
         - Customers
       security:
         - oauth2:
             - customer.read
       parameters:
-        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/GlobalCustomerIdPath'
         - $ref: '#/components/parameters/CorrelationId'
       responses:
         '200':
@@ -55,6 +53,7 @@ paths:
                   summary: Demo business customer
                   value:
                     customerId: cust_demo_1001
+                    cust_id: cust_demo_1001
                     globalCustomerId: 01J0FCMADEMO8A7Z4Y6X3W2V1T
                     displayName: Demo Customer
                     customerType: BUSINESS
@@ -65,14 +64,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StandardError'
-        '403':
-          description: Caller is not authorized for this customer record.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
         '404':
-          description: No customer exists for the supplied ID.
+          description: No customer exists for the supplied global ID.
           content:
             application/json:
               schema:
@@ -83,14 +76,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StandardError'
-  /customers/{customerId}/loans:
+  /customers/{globalCustomerId}/loans:
     get:
-      summary: List loans for a customer
+      summary: List loans for a customer by global customer ID
       description: >-
         Returns a paginated list of loans associated with the supplied
-        customer ID. Results are ordered by next payment due date and use
-        the standard pagination envelope.
-      operationId: listCustomerLoans
+        global customer ID, ordered by next payment due date and using the
+        standard pagination envelope.
+      operationId: listCustomerLoansByGlobalId
       tags:
         - Loans
       security:
@@ -98,8 +91,7 @@ paths:
             - customer.read
             - loans.read
       parameters:
-        - $ref: '#/components/parameters/CustomerIdPath'
-        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/GlobalCustomerIdPath'
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
       responses:
@@ -136,7 +128,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StandardError'
         '404':
-          description: No customer exists for the supplied ID.
+          description: No customer exists for the supplied global ID.
           content:
             application/json:
               schema:
@@ -147,21 +139,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StandardError'
-  /customers/{customerId}/relationships:
+  /customers/{globalCustomerId}/relationships:
     get:
-      summary: List relationships for a customer
-      description: >-
-        Returns a paginated list of relationships (for example guarantor,
-        co-borrower, or entity ownership links) for the supplied customer
-        ID, using the standard pagination envelope.
-      operationId: listCustomerRelationships
+      summary: List relationships for a customer by global customer ID
+      operationId: listCustomerRelationshipsByGlobalId
       tags:
         - Relationships
       security:
         - oauth2:
             - customer.read
       parameters:
-        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/GlobalCustomerIdPath'
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
@@ -198,7 +186,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StandardError'
         '404':
-          description: No customer exists for the supplied ID.
+          description: No customer exists for the supplied global ID.
           content:
             application/json:
               schema:
@@ -265,7 +253,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StandardError'
+                type: object
+                description: Ad-hoc inline error shape (violates FCMA standard).
+                properties:
+                  error:
+                    type: string
+                    description: Error label.
+                    example: BAD_REQUEST
+                  reason:
+                    type: string
+                    description: Why the request was rejected.
+                    example: query is required
         '401':
           description: Missing or invalid access token.
           content:
@@ -296,14 +294,14 @@ components:
             customer.read: Read canonical customer records
             loans.read: Read customer loan portfolios
   parameters:
-    CustomerIdPath:
-      name: customerId
+    GlobalCustomerIdPath:
+      name: globalCustomerId
       in: path
       required: true
-      description: Canonical customer identifier (demo format cust_demo_NNNN).
+      description: Global cross-system customer identifier (ULID format).
       schema:
         type: string
-        example: cust_demo_1001
+        example: 01J0FCMADEMO8A7Z4Y6X3W2V1T
     CorrelationId:
       name: X-Correlation-Id
       in: header
@@ -347,6 +345,10 @@ components:
         customerId:
           type: string
           description: Canonical customer identifier.
+          example: cust_demo_1001
+        cust_id:
+          type: string
+          description: Legacy snake_case alias (violates FCMA naming standard).
           example: cust_demo_1001
         globalCustomerId:
           type: string
