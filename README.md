@@ -79,8 +79,8 @@ Other scripts:
 
 ```bash
 npm run lint:customer    # lint the working spec (openapi.yaml) for this branch
-npm run contract:smoke   # newman run of the contract collection (demo endpoint, see note below)
-npm run mock:smoke       # newman run of the mock collection (replace mock URL first, see note below)
+npm run contract:smoke   # the Postman CLI run of the contract collection (demo endpoint, see note below)
+npm run mock:smoke       # the Postman CLI run of the mock collection (replace mock URL first, see note below)
 ```
 
 ## Recording setup
@@ -123,3 +123,13 @@ All data in this repository is fake and demo-only. Hosts are placeholders
 (`cust_demo_1001`, `loan_demo_2001`, `acct_demo_1001`,
 `01J0FCMADEMO8A7Z4Y6X3W2V1T`). No real FCMA customer data, names, or secrets
 appear anywhere.
+
+## Collection runner
+
+Smoke scripts run with the first-party **Postman CLI** when it's installed and
+logged in (`postman login --with-api-key $POSTMAN_API_KEY`), and fall back to
+Newman automatically (CI runs need no Postman credentials). Force the fallback
+with `npm run mock:smoke:newman` / `npm run contract:smoke:newman`.
+
+The `local-dev-partner-mock` environment ships pointing at the live demo mock
+server, so `npm run mock:smoke` passes out of the box.
