@@ -13,4 +13,4 @@ echo "Collection:  ${COLLECTION}"
 echo "Environment: ${ENVIRONMENT}"
 echo "------------------------------------------------------------"
 
-npx newman run "${COLLECTION}" -e "${ENVIRONMENT}"
+bash "$(dirname "$0")/run-collection.sh" "${COLLECTION}" "${ENVIRONMENT}"

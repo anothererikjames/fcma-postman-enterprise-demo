@@ -4,7 +4,7 @@
   "values": [
     {
       "key": "baseUrl",
-      "value": "https://mock-server-url.example.com",
+      "value": "https://4fb965ab-6114-40e6-bcce-0194ae7e8212.mock.pstmn.io",
       "type": "default",
       "enabled": true
     },

@@ -7,10 +7,12 @@
     "lint:customer": "spectral lint apis/customer-truth-center/openapi.yaml -r governance/fcma-api-standards.spectral.yaml",
     "lint:customer:compliant": "spectral lint apis/customer-truth-center/openapi-compliant.yaml -r governance/fcma-api-standards.spectral.yaml",
     "lint:customer:proposed": "spectral lint apis/customer-truth-center/openapi-proposed-global-customer-id.yaml -r governance/fcma-api-standards.spectral.yaml",
-    "mock:smoke": "newman run postman/collections/partner-online-banking-mock-demo.collection.json -e postman/environments/local-dev-partner-mock.environment.json",
-    "contract:smoke": "newman run postman/collections/customer-truth-center-contract.collection.json -e postman/environments/fcma-contract-dev.environment.json",
+    "mock:smoke": "bash ci/scripts/run-collection.sh \"postman/collections/partner-online-banking-mock-demo.collection.json\" \"postman/environments/local-dev-partner-mock.environment.json\"",
+    "contract:smoke": "bash ci/scripts/run-collection.sh \"postman/collections/customer-truth-center-contract.collection.json\" \"postman/environments/fcma-contract-dev.environment.json\"",
     "demo:fail": "npm run lint:customer:proposed",
-    "demo:pass": "npm run lint:customer:compliant"
+    "demo:pass": "npm run lint:customer:compliant",
+    "mock:smoke:newman": "RUNNER=newman bash ci/scripts/run-collection.sh \"postman/collections/partner-online-banking-mock-demo.collection.json\" \"postman/environments/local-dev-partner-mock.environment.json\"",
+    "contract:smoke:newman": "RUNNER=newman bash ci/scripts/run-collection.sh \"postman/collections/customer-truth-center-contract.collection.json\" \"postman/environments/fcma-contract-dev.environment.json\""
   },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.15.0",
