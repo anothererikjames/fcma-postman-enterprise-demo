@@ -5,11 +5,11 @@ Step-by-step prep and execution for both recordings.
 ## Commands
 
 ```bash
-npm install            # one-time: installs spectral + newman
+npm install            # one-time: installs spectral + the Postman CLI
 npm run demo:fail      # lints the proposed globalCustomerId spec — FAILS with 5 readable violations
 npm run demo:pass      # lints the compliant spec — passes clean
-npm run contract:smoke # newman run of the contract collection (demo endpoint; not live unless pointed at a mock/local server)
-npm run mock:smoke     # newman run of the partner mock collection (replace the placeholder mock URL first)
+npm run contract:smoke # the Postman CLI run of the contract collection (demo endpoint; not live unless pointed at a mock/local server)
+npm run mock:smoke     # the Postman CLI run of the partner mock collection (replace the placeholder mock URL first)
 ```
 
 ## Postman setup
@@ -33,7 +33,7 @@ npm run mock:smoke     # newman run of the partner mock collection (replace the 
 3. Run **API Governance** manually (workflow_dispatch) to show the check.
 4. Optional: open the compliant-spec branch (`fix/fcma-api-standards`) to
    show the passing run.
-5. If the fake URLs prevent full execution of the newman workflows, use the
+5. If the fake URLs prevent full execution of the Postman CLI workflows, use the
    workflow files themselves as the visual proof point — the message is the
    pre-merge step inside existing CI/CD, not the demo endpoints.
 
