@@ -4,17 +4,35 @@ Pre-recording verification for both Loom videos.
 
 ## Video 1 — Governed API Contracts
 
-- [ ] **FCMA Demo Sandbox** workspace created in Postman
-- [ ] Customer Truth Center API imported into the workspace
-- [ ] Compliant spec (`openapi-compliant.yaml`) imported
-- [ ] Proposed `globalCustomerId` spec (`openapi-proposed-global-customer-id.yaml`) imported
-- [ ] FCMA API Standards rules visible (SpecHub governance rules and/or `governance/fcma-api-standards.spectral.yaml`)
-- [ ] Failing governance check ready (`npm run demo:fail` verified locally)
-- [ ] Passing governance check ready (`npm run demo:pass` verified locally)
-- [ ] GitHub Actions workflow visible (`.github/workflows/api-governance.yml` on GitHub)
+**The Postman UI surface (Beats 1–3) is the strongest sell. Verify the
+Governance Group looks pristine BEFORE worrying about the CI half.**
+
+Postman surface:
+
+- [ ] **FCMA Demo Sandbox** workspace created
+- [ ] Compliant spec `Customer Truth Center API` in Spec Hub
+- [ ] Proposed spec `Customer Truth Center API (proposed globalCustomerId)` in Spec Hub
+- [ ] **Governance Group "FCMA Spec Rules"** scoped to FCMA Demo Sandbox
+- [ ] All 8 rules visible in the group, ERROR severity, OpenAPI 3.0 format:
+  - `correlation-id-required`
+  - `operation-description-required`
+  - `pagination-required-on-list-endpoints`
+  - `path-parameter-casing`
+  - `response-examples-required`
+  - `schema-property-casing`
+  - `secured-endpoints-require-401-403`
+  - `standard-error-schema-required`
+- [ ] At least one rule expanded once to confirm rule definitions render cleanly
+- [ ] (Optional bonus shot) inline governance violations visible on the proposed spec in Spec Hub
+
+CI surface:
+
+- [ ] `npm run demo:fail` returns exactly 5 errors locally
+- [ ] `npm run demo:pass` returns 0 errors locally
+- [ ] GitHub Actions workflow visible (`.github/workflows/api-governance.yml`)
+- [ ] Staged Action runs available: `main` green, `feature/global-customer-id` red, `fix/fcma-api-standards` green
 - [ ] CI fail log visible (`ci/sample-output/fcma-api-governance-check.log`)
-- [ ] Contract collection imported (`customer-truth-center-contract.collection.json`)
-- [ ] FCMA contract environment imported (`fcma-contract-dev.environment.json`)
+- [ ] Contract collection + environment in the workspace (carries over from later beats)
 
 ## Video 2 — Mock Servers
 
