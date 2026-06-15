@@ -16,12 +16,22 @@
 #
 # In Postman Enterprise these standards live as governance rules in SpecHub;
 # this file is the CI-side equivalent run via `npx spectral lint`.
-extends: []
+#
+# `formats: [oas3]` is declared at the top level (for CLI default behavior)
+# AND on every rule individually — Postman's API Governance Rule Library
+# importer requires per-rule `formats` and does NOT inherit a top-level
+# declaration, so omitting it on any single rule causes import to fail with
+# "Formats need to be specified in <rule-name>". Both placements are kept so
+# the CLI behavior is unchanged and the import is clean.
+formats:
+  - oas3
 rules:
   operation-description-required:
     description: Every operation must define a summary, a description, and an operationId so consumers understand intent without reading source.
     message: "FCMA standard: operation must define summary, description, and operationId ({{property}} is missing)."
     severity: error
+    formats:
+      - oas3
     given: "$.paths[*][?(@property === 'get' || @property === 'post' || @property === 'put' || @property === 'patch' || @property === 'delete')]"
     then:
       - field: summary
@@ -35,6 +45,8 @@ rules:
     description: Every operation must accept the X-Correlation-Id header (directly or via a referenced parameter) for cross-service traceability.
     message: "FCMA standard: operation is missing the X-Correlation-Id header parameter."
     severity: error
+    formats:
+      - oas3
     given: "$.paths[*][?(@property === 'get' || @property === 'post' || @property === 'put' || @property === 'patch' || @property === 'delete')]"
     then:
       field: parameters
@@ -57,6 +69,8 @@ rules:
     description: Operations that declare security must define both 401 (unauthenticated) and 403 (unauthorized) responses.
     message: "FCMA standard: secured operation must define a {{property}} response."
     severity: error
+    formats:
+      - oas3
     given: "$.paths[*][?(@property === 'get' || @property === 'post' || @property === 'put' || @property === 'patch' || @property === 'delete')].responses"
     then:
       - field: '401'
@@ -68,6 +82,8 @@ rules:
     description: All 4xx/5xx JSON responses must reference the shared StandardError schema rather than defining ad-hoc inline error shapes.
     message: "FCMA standard: error response must reference #/components/schemas/StandardError (found inline or non-standard schema)."
     severity: error
+    formats:
+      - oas3
     resolved: false
     given: "$.paths[*][*].responses[?(@property && /^[45][0-9][0-9]$/.test(@property))].content['application/json'].schema"
     then:
@@ -82,6 +98,8 @@ rules:
     description: Path parameter names must be camelCase per FCMA naming standards.
     message: "FCMA standard: path parameter '{{value}}' must be camelCase."
     severity: error
+    formats:
+      - oas3
     given: "$.paths[*][*].parameters[?(@.in === 'path')].name"
     then:
       function: casing
@@ -92,6 +110,8 @@ rules:
     description: Schema property names must be camelCase per FCMA naming standards (no snake_case fields such as cust_id).
     message: "FCMA standard: schema property '{{property}}' must be camelCase."
     severity: error
+    formats:
+      - oas3
     given: "$.components.schemas[*].properties[*]~"
     then:
       function: casing
@@ -102,6 +122,8 @@ rules:
     description: Every 200 JSON response must include at least one example so consumers and mock servers have a known-good payload.
     message: "FCMA standard: 200 response must include examples."
     severity: error
+    formats:
+      - oas3
     given: "$.paths[*][*].responses['200'].content['application/json']"
     then:
       field: examples
@@ -111,6 +133,8 @@ rules:
     description: List endpoints (/loans, /relationships) must return the standard pagination envelope (page, pageSize, totalCount).
     message: "FCMA standard: list endpoint 200 response must include the pagination envelope."
     severity: error
+    formats:
+      - oas3
     given: "$.paths[?(@property && /\\/(loans|relationships)$/.test(@property))][*].responses['200'].content['application/json'].schema.properties"
     then:
       field: pagination
